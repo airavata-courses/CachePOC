@@ -42,7 +42,9 @@ public class CacheRedisCodec implements RedisCodec<String, Data> {
 	
 	public <T> T convertByteBufferToObject(ByteBuffer byteBuffer,Class<T> cls) {
 		try {
-			return objectMapper.readValue(new String(byteBuffer.array()), cls);
+			byte[] temp=new byte[byteBuffer.limit()];
+			byteBuffer.get(temp);
+			return objectMapper.readValue(new String(temp), cls);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
