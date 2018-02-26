@@ -20,31 +20,28 @@ public class CaffeineCache<K, V> implements Cache<K, V> {
 
 	@Override
 	public void delete(K key) {
-		// TODO Auto-generated method stub
+		loadingCache.invalidate(key);
 	}
 
 	@Override
 	public Map<K, V> readAll() {
-		// TODO Auto-generated method stub
-		return null;
+		return loadingCache.asMap();
 	}
 
 	@Override
 	public void clear() {
-		// TODO Auto-generated method stub
+		loadingCache.cleanUp();
 
 	}
 
 	@Override
 	public Optional<V> read(K key) {
-		// TODO Auto-generated method stub
-		return null;
+		return Optional.ofNullable(loadingCache.get(key));
 	}
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
-
+		loadingCache.cleanUp();
 	}
 
 }

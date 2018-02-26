@@ -51,7 +51,6 @@ public class CacheConfiguration<K, V> {
 							map1.putAll(map2);
 							return map1;
 						}));
-		System.out.println(this.configurations);
 		this.setKeyClass(keyClass);
 		this.setValueClass(valueClass);
 	}

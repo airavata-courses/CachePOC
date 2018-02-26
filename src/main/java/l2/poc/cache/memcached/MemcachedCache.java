@@ -29,7 +29,7 @@ public class MemcachedCache<K, V> implements Cache<K, V> {
 		this.setExpiration(expiration);
 	}
 
-	public MemcachedCache(CacheConfiguration cacheConfiguration) {
+	public MemcachedCache(CacheConfiguration<?, ?> cacheConfiguration) {
 		List<String> addresses = cacheConfiguration.getConfigurations(MEMCACHED_ADDRESSES_KEY);
 		List<InetSocketAddress> inetSocketAddresses = addresses.stream().map((String address) -> {
 			String[] hostPort = address.split(":");
