@@ -13,10 +13,9 @@ import javax.ws.rs.core.MediaType;
 import com.github.benmanes.caffeine.cache.CacheWriter;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 
-import l2.poc.utils.Data;
 import l2.poc.utils.KeyValuePair;
 
-public class CaffeineCacheWriter implements CacheWriter<String, Data> {
+public class CaffeineCacheWriter<K, V> implements CacheWriter<K, V> {
 	private static final Logger LOGGER = Logger.getGlobal();
 	private CacheServiceDiscovery cacheServiceDiscovery;
 	private Executor executor = Executors.newCachedThreadPool();
@@ -26,8 +25,7 @@ public class CaffeineCacheWriter implements CacheWriter<String, Data> {
 	}
 
 	@Override
-	public void delete(String key, Data value, RemovalCause arg2) {
-		LOGGER.info("Deleted" + key + "\n" + value + "\n" + arg2);
+	public void delete(K key, V value, RemovalCause arg2) {
 		executor.execute(() -> {
 			try {
 				cacheServiceDiscovery.getCacheInstances().parallelStream().forEach((WebTarget webTarget) -> {
@@ -40,13 +38,12 @@ public class CaffeineCacheWriter implements CacheWriter<String, Data> {
 	}
 
 	@Override
-	public void write(String arg0, Data arg1) {
-		LOGGER.info("Write");
+	public void write(K arg0, V arg1) {
 		executor.execute(() -> {
 			try {
 				cacheServiceDiscovery.getCacheInstances().parallelStream()
 						.forEach((WebTarget target) -> target.path("rest/cache/write").request()
-								.post(Entity.entity(new KeyValuePair<Data>(arg0, arg1), MediaType.APPLICATION_JSON)));
+								.post(Entity.entity(new KeyValuePair<K, V>(arg0, arg1), MediaType.APPLICATION_JSON)));
 			} catch (Exception e) {
 				throw new CacheWriterException(e);
 			}

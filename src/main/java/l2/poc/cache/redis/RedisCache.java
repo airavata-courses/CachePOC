@@ -1,61 +1,80 @@
 package l2.poc.cache.redis;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
+import javafx.scene.chart.PieChart.Data;
 import l2.poc.cache.Cache;
-import l2.poc.utils.Data;
+import l2.poc.cache.CacheConfiguration;
 
-public class RedisCache implements Cache<Data> {
-	
-	private static final RedisCache redisCache=new RedisCache();
-	
+public class RedisCache<K, V> implements Cache<K, V> {
+
+	private static final String REDIS_PORT = null;
+	private static final String REDIS_HOST = null;
 	private RedisClient redisClient;
+	private Class<K> keyClass = null;
+	private Class<V> valueClass = null;
 
-	@Override
-	public void write(String key, Data value) {
-		doAction((StatefulRedisConnection<String, Data> connection)->connection.async().set(key, value));
+	public RedisCache(RedisClient redisClient) {
+		// TODO Auto-generated constructor stub
 	}
 
-	public void doAction(Consumer<StatefulRedisConnection<String, Data>> action) {
-		StatefulRedisConnection<String, Data> connection=redisClient.connect(new CacheRedisCodec());
-		action.accept(connection);
-	}
-	
-	public <R> R doAction(Function<StatefulRedisConnection<String, Data>, R> action) {
-		StatefulRedisConnection<String, Data> connection=redisClient.connect(new CacheRedisCodec());
-		return action.apply(connection);
-	}
-	
-	@Override
-	public Data read(String key) {
-		return doAction((StatefulRedisConnection<String, Data> connection)->connection.sync().get(key));
+	public RedisCache(CacheConfiguration<K, V> cacheConfiguration) {
+		this.redisClient = RedisClient.create(RedisURI.create((String) cacheConfiguration.getConfiguration(REDIS_HOST),
+				(int) cacheConfiguration.getConfiguration(REDIS_PORT)));
+		this.keyClass = cacheConfiguration.getKeyClass();
+		this.valueClass = cacheConfiguration.getValueClass();
 	}
 
 	@Override
-	public void delete(String key) {
-		doAction((StatefulRedisConnection<String, Data> connection)->connection.async().del(key));
+	public void write(K key, V value) {
+		doAction((StatefulRedisConnection<K, V> connection) -> connection.async().set(key, value));
 	}
 
 	@Override
-	public Map<String, Data> readAll() {
+	public void delete(K key) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Map<K, V> readAll() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public static RedisCache getRedisCache() {
-		return redisCache;
+	@Override
+	public void clear() {
+		// TODO Auto-generated method stub
+
 	}
 
-	public RedisClient getRedisClient() {
-		return redisClient;
+	@Override
+	public Optional<V> read(K key) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
-	public void setRedisClient(RedisClient redisClient) {
-		this.redisClient = redisClient;
+	@Override
+	public void close() {
+		this.redisClient.shutdown();
+	}
+
+	public void doAction(Consumer<StatefulRedisConnection<K, V>> action) {
+		StatefulRedisConnection<K, V> connection = redisClient
+				.connect(new CacheRedisCodec<>(this.keyClass, this.valueClass));
+		action.accept(connection);
+	}
+
+	public <R> R doAction(Function<StatefulRedisConnection<String, Data>, R> action) {
+		StatefulRedisConnection<String, Data> connection = redisClient
+				.connect(new CacheRedisCodec<>(String.class, Data.class));
+		return action.apply(connection);
 	}
 
 }

@@ -7,31 +7,38 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.lettuce.core.codec.RedisCodec;
-import l2.poc.utils.Data;
 
-public class CacheRedisCodec implements RedisCodec<String, Data> {
-	private final ObjectMapper objectMapper=new ObjectMapper();
+public class CacheRedisCodec<K, V> implements RedisCodec<K, V> {
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
-	@Override
-	public String decodeKey(ByteBuffer bytes) {
-		return convertByteBufferToObject(bytes, String.class);
+	private Class<K> keyClass;
+	private Class<V> valueClass;
+
+	public CacheRedisCodec(Class<K> kClass, Class<V> vCass) {
+		this.keyClass = kClass;
+		this.valueClass = vCass;
 	}
 
 	@Override
-	public Data decodeValue(ByteBuffer bytes) {
-		return convertByteBufferToObject(bytes, Data.class);
+	public K decodeKey(ByteBuffer bytes) {
+		return convertByteBufferToObject(bytes, this.keyClass);
 	}
 
 	@Override
-	public ByteBuffer encodeKey(String key) {
+	public V decodeValue(ByteBuffer bytes) {
+		return convertByteBufferToObject(bytes, this.valueClass);
+	}
+
+	@Override
+	public ByteBuffer encodeKey(K key) {
 		return convertObjectToByteBufer(key);
 	}
 
 	@Override
-	public ByteBuffer encodeValue(Data value) {
+	public ByteBuffer encodeValue(V value) {
 		return convertObjectToByteBufer(value);
 	}
-	
+
 	public ByteBuffer convertObjectToByteBufer(Object obj) {
 		try {
 			return ByteBuffer.wrap(objectMapper.writeValueAsString(obj).getBytes());
@@ -39,10 +46,14 @@ public class CacheRedisCodec implements RedisCodec<String, Data> {
 			throw new RuntimeException(e);
 		}
 	}
-	
-	public <T> T convertByteBufferToObject(ByteBuffer byteBuffer,Class<T> cls) {
+
+	public <T> T convertByteBufferToObject(ByteBuffer byteBuffer, Class<T> cls) {
 		try {
-			byte[] temp=new byte[byteBuffer.limit()];
+			int remaining = byteBuffer.remaining();
+			if (remaining == 0) {
+				return null;
+			}
+			byte[] temp = new byte[remaining];
 			byteBuffer.get(temp);
 			return objectMapper.readValue(new String(temp), cls);
 		} catch (IOException e) {

@@ -1,43 +1,50 @@
 package l2.poc.cache.caffeine;
 
 import java.util.Map;
+import java.util.Optional;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 
 import l2.poc.cache.Cache;
-import l2.poc.utils.Data;
 
+public class CaffeineCache<K, V> implements Cache<K, V> {
+	private LoadingCache<K, V> loadingCache;
+	private CacheServiceDiscovery cacheServiceDiscovery = CacheServiceDiscovery.getServiceDiscovery();
 
-public class CaffeineCache implements Cache <Data>{
-	private LoadingCache<String, Data> loadingCache;
-	private static final CaffeineCache CAFFEINE_CACHE=new CaffeineCache();
-	private CacheServiceDiscovery cacheServiceDiscovery=CacheServiceDiscovery.getServiceDiscovery();
-
-	public CaffeineCache() {
-		loadingCache=Caffeine.newBuilder().writer(new CaffeineCacheWriter(cacheServiceDiscovery)).build(new CaffeineCacheLoader(cacheServiceDiscovery));
-	}
-	
-	public static CaffeineCache getCaffeineCache() {
-		return CAFFEINE_CACHE;
-	}
-	
-	public Map<String, Data> readAll(){
-		return loadingCache.asMap();
+	@Override
+	public void write(K key, V value) {
+		loadingCache = Caffeine.newBuilder().writer(new CaffeineCacheWriter(cacheServiceDiscovery))
+				.build(new CaffeineCacheLoader(cacheServiceDiscovery));
 	}
 
 	@Override
-	public void write(String key, Data value) {
-		loadingCache.put(key, value);
+	public void delete(K key) {
+		// TODO Auto-generated method stub
 	}
 
 	@Override
-	public Data read(String key) {
-		return loadingCache.get(key);
+	public Map<K, V> readAll() {
+		// TODO Auto-generated method stub
+		return null;
 	}
-	
-	public void delete(String key) {
-		loadingCache.invalidate(key);	
-		}
+
+	@Override
+	public void clear() {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Optional<V> read(K key) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void close() {
+		// TODO Auto-generated method stub
+
+	}
 
 }

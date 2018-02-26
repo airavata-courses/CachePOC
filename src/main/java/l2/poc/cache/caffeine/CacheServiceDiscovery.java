@@ -1,7 +1,10 @@
 package l2.poc.cache.caffeine;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -22,8 +25,7 @@ public class CacheServiceDiscovery {
 	private Client client;
 	private String id;
 
-	
-	
+
 	
 	private CacheServiceDiscovery() {
 		client = ClientBuilder.newBuilder().register(new MultiPartFeature()).register(new SseFeature()).build();
@@ -33,11 +35,8 @@ public class CacheServiceDiscovery {
 		return SERVICE_DISCOVERY;
 	}
 	
-	
 	public Optional<WebTarget> getCacheInstance() throws Exception {
-		serviceDiscovery.start();
-		ServiceProvider<InstanceDetails> serviceProvider = serviceDiscovery.serviceProviderBuilder().serviceName(serviceName).build();
-		serviceProvider.start();
+		ServiceProvider<InstanceDetails> serviceProvider = createServiceProvider();
 		ServiceInstance<InstanceDetails> serviceInstance=null;
 		Collection<ServiceInstance<InstanceDetails>> serviceInstances=serviceProvider.getAllInstances();
 		for( ServiceInstance<InstanceDetails> inst:serviceInstances) {
@@ -46,7 +45,23 @@ public class CacheServiceDiscovery {
 				break;
 			}
 		}
-		return Optional.ofNullable(serviceInstance).map((ServiceInstance<InstanceDetails> instance)->client.target(instance.buildUriSpec()));
+		return Optional.ofNullable(serviceInstance).map(createServiceInstalnceToURIConverter());
+	}
+
+	private Function<ServiceInstance<InstanceDetails>, ? extends WebTarget> createServiceInstalnceToURIConverter() {
+		return (ServiceInstance<InstanceDetails> instance)->client.target(instance.buildUriSpec());
+	}
+
+	private ServiceProvider<InstanceDetails> createServiceProvider() throws Exception {
+		serviceDiscovery.start();
+		ServiceProvider<InstanceDetails> serviceProvider = serviceDiscovery.serviceProviderBuilder().serviceName(serviceName).build();
+		serviceProvider.start();
+		return serviceProvider;
+	}
+	
+	public List<WebTarget> getCacheInstances() throws Exception{
+		ServiceProvider<InstanceDetails> serviceProvider = createServiceProvider();
+		return serviceProvider.getAllInstances().parallelStream().map(createServiceInstalnceToURIConverter()).collect(Collectors.toList());
 	}
 
 	public CacheServiceDiscovery setServiceDiscovery(ServiceDiscovery<InstanceDetails> serviceDiscovery) {

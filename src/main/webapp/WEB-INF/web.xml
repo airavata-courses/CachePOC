@@ -6,17 +6,18 @@
 		<servlet-name>JerseyRestService</servlet-name>
 		<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
 		<init-param>
-			<param-name>jersey.config.server.provider.packages</param-name>
-			<param-value>l2.poc</param-value>
+			<param-name>javax.ws.rs.Application</param-name>
+			<param-value>l2.poc.JerseyApplication</param-value>
+		</init-param>
+		<init-param>
+			<param-name>jersey.config.server.provider.classnames</param-name>
+			<param-value>l2.poc.JerseyApplicationEventListener</param-value>
 		</init-param>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>JerseyRestService</servlet-name>
 		<url-pattern>/rest/*</url-pattern>
 	</servlet-mapping>
-	<listener>
-		<listener-class>l2.poc.WebApplicationInitializer</listener-class>
-	</listener>
 	<context-param>
 		<param-name>isLog4jAutoInitializationDisabled</param-name>
 		<param-value>true</param-value>

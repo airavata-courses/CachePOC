@@ -1,27 +1,27 @@
 package l2.poc.utils;
 
-public class KeyValuePair<T> {
-	private String key;
-	private T value;
-	
-	public KeyValuePair(String key,T value) {
+public class KeyValuePair<K, V> {
+	private K key;
+	private V value;
+
+	public KeyValuePair(K key, V value) {
 		this.setKey(key);
 		this.setValue(value);
 	}
 
-	public String getKey() {
+	public K getKey() {
 		return key;
 	}
 
-	public void setKey(String key) {
+	public void setKey(K key) {
 		this.key = key;
 	}
 
-	public T getValue() {
+	public V getValue() {
 		return value;
 	}
 
-	public void setValue(T value) {
+	public void setValue(V value) {
 		this.value = value;
 	}
 
